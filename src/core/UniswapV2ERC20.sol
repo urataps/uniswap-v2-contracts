@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity 0.8.24;
 
-import {ERC20} from "solady//tokens/ERC20.sol";
+import {ERC20} from "solady/tokens/ERC20.sol";
 
 contract UniswapV2ERC20 is ERC20 {
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");

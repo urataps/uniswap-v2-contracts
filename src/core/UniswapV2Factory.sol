@@ -11,6 +11,9 @@ contract UniswapV2Factory is IUniswapV2Factory {
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
+    address private _token0;
+    address private _token1;
+
     constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
     }
@@ -24,9 +27,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), "ZERO_ADDRESS");
         require(getPair[token0][token1] == address(0), "PAIR_EXISTS"); // single check is sufficient
-        bytes32 salt = keccak256(abi.encodePacked(token0, token1));
-        pair = address(new UniswapV2Pair{salt: salt}());
-        IUniswapV2Pair(pair).initialize(token0, token1);
+        pair = _deployPool(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
@@ -41,5 +42,18 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setFeeToSetter(address _feeToSetter) external {
         require(msg.sender == feeToSetter, "FORBIDDEN");
         feeToSetter = _feeToSetter;
+    }
+
+    function parameters() external view returns (address token0, address token1) {
+        token0 = _token0;
+        token1 = _token1;
+    }
+
+    function _deployPool(address token0, address token1) internal returns (address pair) {
+        _token0 = token0;
+        _token1 = token1;
+        pair = address(new UniswapV2Pair{salt: keccak256(abi.encodePacked(token0, token1))}());
+        delete _token0;
+        delete _token1;
     }
 }

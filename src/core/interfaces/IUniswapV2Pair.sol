@@ -5,12 +5,7 @@ interface IUniswapV2Pair {
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
     event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
+        address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to
     );
     event Sync(uint112 reserve0, uint112 reserve1);
 
@@ -28,6 +23,4 @@ interface IUniswapV2Pair {
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
     function skim(address to) external;
     function sync() external;
-
-    function initialize(address, address) external;
 }
