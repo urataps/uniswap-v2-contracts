@@ -2,20 +2,20 @@
 pragma solidity 0.8.24;
 
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
+import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import {ERC20} from "solady/tokens/ERC20.sol";
 
 import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
-import {UniswapV2ERC20} from "./UniswapV2ERC20.sol";
 import {Math} from "./libraries/Math.sol";
 import {UQ112x112} from "./libraries/UQ112x112.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Callee} from "./interfaces/IUniswapV2Callee.sol";
 
-contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, ReentrancyGuard {
+contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     using UQ112x112 for uint224;
 
     uint public constant MINIMUM_LIQUIDITY = 10 ** 3;
-    bytes4 private constant SELECTOR = 0xa9059cbb;
 
     address public immutable factory;
     address public immutable token0;
@@ -36,8 +36,17 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, ReentrancyGuard {
     }
 
     function _safeTransfer(address token, address to, uint value) private {
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), "TRANSFER_FAILED");
+        SafeTransferLib.safeTransfer(token, to, value);
+    }
+
+    function name() public view override returns (string memory) {
+        return string.concat(IUniswapV2Factory(factory).name(), " ", IERC20(token0).name(), "-", IERC20(token1).name());
+    }
+
+    function symbol() public view override returns (string memory) {
+        return string.concat(
+            IUniswapV2Factory(factory).symbol(), " ", IERC20(token0).symbol(), "-", IERC20(token1).symbol()
+        );
     }
 
     constructor() {

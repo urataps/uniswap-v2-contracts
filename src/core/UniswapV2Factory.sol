@@ -14,8 +14,13 @@ contract UniswapV2Factory is IUniswapV2Factory {
     address private _token0;
     address private _token1;
 
-    constructor(address _feeToSetter) {
+    string public name;
+    string public symbol;
+
+    constructor(address _feeToSetter, string memory _name, string memory _symbol) {
         feeToSetter = _feeToSetter;
+        name = _name;
+        symbol = _symbol;
     }
 
     function allPairsLength() external view returns (uint) {

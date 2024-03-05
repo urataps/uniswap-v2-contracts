@@ -18,4 +18,8 @@ interface IUniswapV2Factory {
 
     // Added for gas efficiency
     function parameters() external view returns (address token0, address token1);
+
+    // Added for customizability
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
 }
