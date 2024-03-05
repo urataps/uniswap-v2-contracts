@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity 0.8.24;
 
-import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
-import { UniswapV2Pair, IUniswapV2Pair } from "./UniswapV2Pair.sol";
+import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
+import {UniswapV2Pair, IUniswapV2Pair} from "./UniswapV2Pair.sol";
 
 contract UniswapV2Factory is IUniswapV2Factory {
     address public feeTo;
