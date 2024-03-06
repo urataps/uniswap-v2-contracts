@@ -1,9 +1,18 @@
 [profile.default]
+auto_detect_solc = false
+block_timestamp = 1_680_220_800 # March 31, 2023 at 00:00 GMT
+bytecode_hash = "none"
+evm_version = "paris"           # See https://www.evmdiff.com/features?name=PUSH0&kind=opcode
+fuzz = { runs = 1_000 }
+gas_reports = ["*"]
+optimizer = true
+optimizer_runs = 10_000
+script = "script"
+solc = "0.8.24"
 src = "src"
 out = "out"
+test = "test"
 libs = ["lib"]
 
 [fmt]
 int_types = "short"
-
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
