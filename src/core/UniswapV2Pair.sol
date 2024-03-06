@@ -16,6 +16,7 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     using UQ112x112 for uint224;
 
     uint public constant MINIMUM_LIQUIDITY = 10 ** 3;
+    uint private constant FEE_BASE = 1000;
 
     address public immutable factory;
     address public immutable token0;
@@ -162,8 +163,9 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
         require(amount0In > 0 || amount1In > 0, "INSUFFICIENT_INPUT_AMOUNT");
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-            uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
-            uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
+            uint poolFee = IUniswapV2Factory(factory).poolFee();
+            uint balance0Adjusted = (balance0 * FEE_BASE) - (amount0In * poolFee);
+            uint balance1Adjusted = (balance1 * FEE_BASE) - (amount1In * poolFee);
             require(balance0Adjusted * balance1Adjusted >= uint(_reserve0) * _reserve1 * 1000 ** 2, "K");
         }
 

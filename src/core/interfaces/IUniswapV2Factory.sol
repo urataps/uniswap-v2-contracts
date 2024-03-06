@@ -22,4 +22,5 @@ interface IUniswapV2Factory {
     // Added for customizability
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
+    function poolFee() external view returns (uint);
 }
