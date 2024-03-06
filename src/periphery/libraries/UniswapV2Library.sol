@@ -22,7 +22,7 @@ library UniswapV2Library {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f" // init code hash TODO: update
+                        hex"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f" // TODO: update
                     )
                 )
             )
@@ -51,7 +51,7 @@ library UniswapV2Library {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, "INSUFFICIENT_INPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT_LIQUIDITY");
-        uint amountInWithFee = amountIn * 997;
+        uint amountInWithFee = amountIn * 997; // todo: change hardcoded fee
         uint numerator = amountInWithFee * reserveOut;
         uint denominator = reserveIn * FEE_BASE + amountInWithFee;
         amountOut = numerator / denominator;
@@ -62,7 +62,7 @@ library UniswapV2Library {
         require(amountOut > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT_LIQUIDITY");
         uint numerator = reserveIn * amountOut * FEE_BASE;
-        uint denominator = reserveOut - amountOut * 997;
+        uint denominator = reserveOut - amountOut * 997; // todo: change hardcoded fee
         amountIn = (numerator / denominator) + 1;
     }
 
