@@ -3,10 +3,9 @@ pragma solidity 0.8.24;
 
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {UniswapV2Pair, IUniswapV2Pair} from "./UniswapV2Pair.sol";
+import {FEE_BASE} from "src/Constants.sol";
 
 contract UniswapV2Factory is IUniswapV2Factory {
-    uint private constant FEE_BASE = 1000;
-
     address public feeTo;
     address public feeToSetter;
 

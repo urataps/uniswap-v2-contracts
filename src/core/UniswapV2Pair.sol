@@ -5,10 +5,10 @@ import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 import {ERC20} from "solady/tokens/ERC20.sol";
 
+import {FEE_BASE} from "src/Constants.sol";
 import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 import {Math} from "./libraries/Math.sol";
 import {UQ112x112} from "./libraries/UQ112x112.sol";
-import {IERC20} from "./interfaces/IERC20.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Callee} from "./interfaces/IUniswapV2Callee.sol";
 
@@ -16,7 +16,6 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     using UQ112x112 for uint224;
 
     uint public constant MINIMUM_LIQUIDITY = 10 ** 3;
-    uint private constant FEE_BASE = 1000;
 
     address public immutable factory;
     address public immutable token0;
@@ -41,13 +40,12 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     }
 
     function name() public view override returns (string memory) {
-        return string.concat(IUniswapV2Factory(factory).name(), " ", IERC20(token0).name(), "-", IERC20(token1).name());
+        return string.concat(IUniswapV2Factory(factory).name(), " ", ERC20(token0).name(), "-", ERC20(token1).name());
     }
 
     function symbol() public view override returns (string memory) {
-        return string.concat(
-            IUniswapV2Factory(factory).symbol(), " ", IERC20(token0).symbol(), "-", IERC20(token1).symbol()
-        );
+        return
+            string.concat(IUniswapV2Factory(factory).symbol(), " ", ERC20(token0).symbol(), "-", ERC20(token1).symbol());
     }
 
     constructor() {
@@ -97,8 +95,8 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external nonReentrant returns (uint liquidity) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        uint balance0 = IERC20(token0).balanceOf(address(this));
-        uint balance1 = IERC20(token1).balanceOf(address(this));
+        uint balance0 = ERC20(token0).balanceOf(address(this));
+        uint balance1 = ERC20(token1).balanceOf(address(this));
         uint amount0 = balance0 - _reserve0;
         uint amount1 = balance1 - _reserve1;
 
@@ -121,8 +119,8 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external nonReentrant returns (uint amount0, uint amount1) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        uint balance0 = IERC20(token0).balanceOf(address(this));
-        uint balance1 = IERC20(token1).balanceOf(address(this));
+        uint balance0 = ERC20(token0).balanceOf(address(this));
+        uint balance1 = ERC20(token1).balanceOf(address(this));
         uint liquidity = balanceOf(address(this));
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
@@ -133,8 +131,8 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
         _burn(address(this), liquidity);
         _safeTransfer(token0, to, amount0);
         _safeTransfer(token1, to, amount1);
-        balance0 = IERC20(token0).balanceOf(address(this));
-        balance1 = IERC20(token1).balanceOf(address(this));
+        balance0 = ERC20(token0).balanceOf(address(this));
+        balance1 = ERC20(token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint(reserve0) * reserve1; // reserve0 and reserve1 are up-to-date
@@ -155,8 +153,8 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
             if (amount0Out > 0) _safeTransfer(token0, to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _safeTransfer(token1, to, amount1Out); // optimistically transfer tokens
             if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-            balance0 = IERC20(token0).balanceOf(address(this));
-            balance1 = IERC20(token1).balanceOf(address(this));
+            balance0 = ERC20(token0).balanceOf(address(this));
+            balance1 = ERC20(token1).balanceOf(address(this));
         }
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
@@ -175,12 +173,12 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
 
     // force balances to match reserves
     function skim(address to) external nonReentrant {
-        _safeTransfer(token0, to, IERC20(token0).balanceOf(address(this)) - reserve0);
-        _safeTransfer(token1, to, IERC20(token1).balanceOf(address(this)) - reserve1);
+        _safeTransfer(token0, to, ERC20(token0).balanceOf(address(this)) - reserve0);
+        _safeTransfer(token1, to, ERC20(token1).balanceOf(address(this)) - reserve1);
     }
 
     // force reserves to match balances
     function sync() external nonReentrant {
-        _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
+        _update(ERC20(token0).balanceOf(address(this)), ERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
 }
