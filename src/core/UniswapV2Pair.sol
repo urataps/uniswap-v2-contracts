@@ -20,6 +20,7 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     address public immutable factory;
     address public immutable token0;
     address public immutable token1;
+    uint private immutable poolFee;
 
     uint112 private reserve0; // uses single storage slot, accessible via getReserves
     uint112 private reserve1; // uses single storage slot, accessible via getReserves
@@ -51,6 +52,7 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
     constructor() {
         factory = msg.sender;
         (token0, token1) = IUniswapV2Factory(msg.sender).parameters();
+        poolFee = IUniswapV2Factory(msg.sender).poolFee();
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -161,7 +163,6 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
         require(amount0In > 0 || amount1In > 0, "INSUFFICIENT_INPUT_AMOUNT");
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-            uint poolFee = IUniswapV2Factory(factory).poolFee();
             uint balance0Adjusted = (balance0 * FEE_BASE) - (amount0In * poolFee);
             uint balance1Adjusted = (balance1 * FEE_BASE) - (amount1In * poolFee);
             require(balance0Adjusted * balance1Adjusted >= uint(_reserve0) * _reserve1 * 1000 ** 2, "K");

@@ -13,6 +13,7 @@ import {IWETH} from "./interfaces/IWETH.sol";
 contract UniswapV2Router01 is IUniswapV2Router01 {
     address public immutable override factory;
     address public immutable override WETH;
+    uint private immutable FEE;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, "EXPIRED");
@@ -22,6 +23,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
     constructor(address _factory, address _WETH) {
         factory = _factory;
         WETH = _WETH;
+        FEE = IUniswapV2Factory(_factory).poolFee();
     }
 
     receive() external payable {
@@ -186,7 +188,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
         address to,
         uint deadline
     ) external override ensure(deadline) returns (uint[] memory amounts) {
-        amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
+        amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path, FEE);
         require(amounts[amounts.length - 1] >= amountOutMin, "INSUFFICIENT_OUTPUT_AMOUNT");
         SafeTransferLib.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
@@ -201,7 +203,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
         address to,
         uint deadline
     ) external override ensure(deadline) returns (uint[] memory amounts) {
-        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
+        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path, FEE);
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT_AMOUNT");
         SafeTransferLib.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
@@ -217,7 +219,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, "INVALID_PATH");
-        amounts = UniswapV2Library.getAmountsOut(factory, msg.value, path);
+        amounts = UniswapV2Library.getAmountsOut(factory, msg.value, path, FEE);
         require(amounts[amounts.length - 1] >= amountOutMin, "INSUFFICIENT_OUTPUT_AMOUNT");
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
@@ -231,7 +233,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
         returns (uint[] memory amounts)
     {
         require(path[path.length - 1] == WETH, "INVALID_PATH");
-        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
+        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path, FEE);
         require(amounts[0] <= amountInMax, "EXCESSIVE_INPUT_AMOUNT");
         SafeTransferLib.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
@@ -248,7 +250,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
         returns (uint[] memory amounts)
     {
         require(path[path.length - 1] == WETH, "INVALID_PATH");
-        amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
+        amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path, FEE);
         require(amounts[amounts.length - 1] >= amountOutMin, "INSUFFICIENT_OUTPUT_AMOUNT");
         SafeTransferLib.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]
@@ -266,7 +268,7 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, "INVALID_PATH");
-        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
+        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path, FEE);
         require(amounts[0] <= msg.value, "EXCESSIVE_INPUT_AMOUNT");
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
@@ -280,27 +282,27 @@ contract UniswapV2Router01 is IUniswapV2Router01 {
 
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut)
         public
-        pure
+        view
         override
         returns (uint amountOut)
     {
-        return UniswapV2Library.getAmountOut(amountIn, reserveIn, reserveOut);
+        return UniswapV2Library.getAmountOut(amountIn, reserveIn, reserveOut, FEE);
     }
 
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut)
         public
-        pure
+        view
         override
         returns (uint amountIn)
     {
-        return UniswapV2Library.getAmountOut(amountOut, reserveIn, reserveOut);
+        return UniswapV2Library.getAmountOut(amountOut, reserveIn, reserveOut, FEE);
     }
 
     function getAmountsOut(uint amountIn, address[] memory path) public view override returns (uint[] memory amounts) {
-        return UniswapV2Library.getAmountsOut(factory, amountIn, path);
+        return UniswapV2Library.getAmountsOut(factory, amountIn, path, FEE);
     }
 
     function getAmountsIn(uint amountOut, address[] memory path) public view override returns (uint[] memory amounts) {
-        return UniswapV2Library.getAmountsIn(factory, amountOut, path);
+        return UniswapV2Library.getAmountsIn(factory, amountOut, path, FEE);
     }
 }

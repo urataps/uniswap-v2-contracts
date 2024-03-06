@@ -17,7 +17,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     string public name;
     string public symbol;
-    uint public poolFee;
+    uint public immutable poolFee;
 
     constructor(address _feeToSetter, uint _poolFee, string memory _name, string memory _symbol) {
         require(_poolFee <= FEE_BASE, "INVALID_POOL_FEE");
@@ -51,12 +51,6 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setFeeToSetter(address _feeToSetter) external {
         require(msg.sender == feeToSetter, "FORBIDDEN");
         feeToSetter = _feeToSetter;
-    }
-
-    function setPoolFee(uint _poolFee) external {
-        require(msg.sender == feeToSetter, "FORBIDDEN");
-        require(_poolFee <= FEE_BASE, "INVALID_POOL_FEE");
-        poolFee = _poolFee;
     }
 
     function parameters() external view returns (address token0, address token1) {

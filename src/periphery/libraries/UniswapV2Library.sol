@@ -22,7 +22,7 @@ library UniswapV2Library {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f" // TODO: update
+                        hex"dd7de90f983eaa6a7081965e2f56145605cca9ec0d2f6db1de2e48cb4a6852cc"
                     )
                 )
             )
@@ -48,26 +48,34 @@ library UniswapV2Library {
     }
 
     // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
-    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
+    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut, uint fee)
+        internal
+        pure
+        returns (uint amountOut)
+    {
         require(amountIn > 0, "INSUFFICIENT_INPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT_LIQUIDITY");
-        uint amountInWithFee = amountIn * 997; // todo: change hardcoded fee
+        uint amountInWithFee = amountIn * (FEE_BASE - fee);
         uint numerator = amountInWithFee * reserveOut;
         uint denominator = reserveIn * FEE_BASE + amountInWithFee;
         amountOut = numerator / denominator;
     }
 
     // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
-    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal pure returns (uint amountIn) {
+    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut, uint fee)
+        internal
+        pure
+        returns (uint amountIn)
+    {
         require(amountOut > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT_LIQUIDITY");
         uint numerator = reserveIn * amountOut * FEE_BASE;
-        uint denominator = reserveOut - amountOut * 997; // todo: change hardcoded fee
+        uint denominator = reserveOut - amountOut * (FEE_BASE - fee);
         amountIn = (numerator / denominator) + 1;
     }
 
     // performs chained getAmountOut calculations on any number of pairs
-    function getAmountsOut(address factory, uint amountIn, address[] memory path)
+    function getAmountsOut(address factory, uint amountIn, address[] memory path, uint fee)
         internal
         view
         returns (uint[] memory amounts)
@@ -77,12 +85,12 @@ library UniswapV2Library {
         amounts[0] = amountIn;
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
-            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, fee);
         }
     }
 
     // performs chained getAmountIn calculations on any number of pairs
-    function getAmountsIn(address factory, uint amountOut, address[] memory path)
+    function getAmountsIn(address factory, uint amountOut, address[] memory path, uint fee)
         internal
         view
         returns (uint[] memory amounts)
@@ -92,7 +100,7 @@ library UniswapV2Library {
         amounts[amounts.length - 1] = amountOut;
         for (uint i = path.length - 1; i > 0; i--) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i]);
-            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
+            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut, fee);
         }
     }
 }
