@@ -84,7 +84,7 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
                 uint rootKLast = Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply() * (rootK - rootKLast);
-                    uint denominator = rootK * 5 - rootKLast;
+                    uint denominator = rootK * 5 + rootKLast;
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }

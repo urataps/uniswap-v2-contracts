@@ -22,7 +22,6 @@ contract UniswapV2Factory is IUniswapV2Factory {
     constructor(address _feeToSetter, uint _poolFee, string memory _name, string memory _symbol) {
         require(_poolFee <= FEE_BASE, "INVALID_POOL_FEE");
         feeToSetter = _feeToSetter;
-        feeTo = _feeToSetter;
         name = _name;
         symbol = _symbol;
         poolFee = _poolFee;
