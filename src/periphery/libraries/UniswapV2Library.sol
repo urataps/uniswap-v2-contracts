@@ -72,7 +72,7 @@ library UniswapV2Library {
         require(amountOut > 0, "INSUFFICIENT_OUTPUT_AMOUNT");
         require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT_LIQUIDITY");
         uint numerator = reserveIn * amountOut * FEE_BASE;
-        uint denominator = reserveOut - amountOut * (FEE_BASE - fee);
+        uint denominator = (reserveOut - amountOut) * (FEE_BASE - fee);
         amountIn = (numerator / denominator) + 1;
     }
 
