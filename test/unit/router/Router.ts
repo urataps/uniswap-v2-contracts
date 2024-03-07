@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { MaxUint256, ZeroAddress } from "ethers";
-import { expandTo18Decimals, getApprovalDigest } from "../utils";
+import { expandTo18Decimals, getPermitSignature } from "../utils";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { deployRouterFixture } from "./Router.fixture";
 import {
@@ -231,7 +231,7 @@ describe("UniswapV2Router{01,02}", () => {
           totalSupplyToken0 - 500n
         );
         expect(await token1.balanceOf(wallet.address)).to.eq(
-          totalSupplyToken1 - 250000187312969n
+          totalSupplyToken1 - 2000n
         );
       });
 
@@ -310,7 +310,9 @@ describe("UniswapV2Router{01,02}", () => {
         const expectedLiquidity = expandTo18Decimals(2);
 
         const nonce = await pair.nonces(wallet.address);
-        const digest = await getApprovalDigest(
+
+        const { v, r, s } = await getPermitSignature(
+          wallet,
           pair,
           {
             owner: wallet.address,
@@ -320,13 +322,6 @@ describe("UniswapV2Router{01,02}", () => {
           nonce,
           MaxUint256
         );
-
-        const signature = await wallet.signMessage(
-          Buffer.from(digest.slice(2), "hex")
-        );
-        const r = signature.slice(0, 66);
-        const s = "0x" + signature.slice(66, 130);
-        const v = "0x" + signature.slice(130, 132);
 
         await router.removeLiquidityWithPermit(
           token0Address,
@@ -354,7 +349,9 @@ describe("UniswapV2Router{01,02}", () => {
         const expectedLiquidity = expandTo18Decimals(2);
 
         const nonce = await WETHPair.nonces(wallet.address);
-        const digest = await getApprovalDigest(
+
+        const { v, r, s } = await getPermitSignature(
+          wallet,
           WETHPair,
           {
             owner: wallet.address,
@@ -364,13 +361,6 @@ describe("UniswapV2Router{01,02}", () => {
           nonce,
           MaxUint256
         );
-
-        const signature = await wallet.signMessage(
-          Buffer.from(digest.slice(2), "hex")
-        );
-        const r = signature.slice(0, 66);
-        const s = "0x" + signature.slice(66, 130);
-        const v = "0x" + signature.slice(130, 132);
 
         await router.removeLiquidityETHWithPermit(
           WETHPartnerAddress,

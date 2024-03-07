@@ -1,41 +1,62 @@
-import { AddressLike, Contract } from "ethers";
-import {
-  getAddress,
-  keccak256,
-  AbiCoder,
-  toUtf8Bytes,
-  solidityPacked,
-} from "ethers";
-import { UniswapV2Pair } from "../../typechain";
-
-const PERMIT_TYPEHASH = keccak256(
-  toUtf8Bytes(
-    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-  )
-);
-const defaultAbiCoder = new AbiCoder();
+import { AddressLike, Signature, TypedDataDomain } from "ethers";
+import { getAddress, keccak256, solidityPacked } from "ethers";
+import { ERC20 } from "../../typechain";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 export function expandTo18Decimals(n: number): bigint {
   return BigInt(n) * 10n ** 18n;
 }
 
-function getDomainSeparator(name: string, tokenAddress: string) {
-  return keccak256(
-    defaultAbiCoder.encode(
-      ["bytes32", "bytes32", "bytes32", "uint256", "address"],
-      [
-        keccak256(
-          toUtf8Bytes(
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-          )
-        ),
-        keccak256(toUtf8Bytes(name)),
-        keccak256(toUtf8Bytes("1")),
-        1,
-        tokenAddress,
-      ]
-    )
+function domainSeparator(
+  name: string,
+  tokenAddress: string,
+  chainId: bigint
+): TypedDataDomain {
+  return {
+    name,
+    version: "1",
+    chainId,
+    verifyingContract: tokenAddress,
+  };
+}
+
+export async function getPermitSignature(
+  wallet: SignerWithAddress,
+  token: ERC20,
+  approve: {
+    owner: AddressLike;
+    spender: AddressLike;
+    value: bigint;
+  },
+  nonce: bigint,
+  deadline: bigint
+): Promise<Signature> {
+  const chainId = await wallet.provider
+    .getNetwork()
+    .then((network) => network.chainId);
+  const name = await token.name();
+  const tokenAddress = await token.getAddress();
+  const signature = await wallet.signTypedData(
+    domainSeparator(name, tokenAddress, chainId),
+    {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    },
+    {
+      owner: approve.owner,
+      spender: approve.spender,
+      value: approve.value,
+      nonce,
+      deadline,
+    }
   );
+
+  return Signature.from(signature);
 }
 
 export function getCreate2Address(
@@ -53,43 +74,6 @@ export function getCreate2Address(
   ];
   const sanitizedInputs = `0x${create2Inputs.map((i) => i.slice(2)).join("")}`;
   return getAddress(`0x${keccak256(sanitizedInputs).slice(-40)}`);
-}
-
-export async function getApprovalDigest(
-  token: UniswapV2Pair,
-  approve: {
-    owner: string;
-    spender: string;
-    value: bigint;
-  },
-  nonce: bigint,
-  deadline: bigint
-): Promise<string> {
-  const name = await token.name();
-  const DOMAIN_SEPARATOR = getDomainSeparator(name, await token.getAddress());
-  return keccak256(
-    solidityPacked(
-      ["bytes1", "bytes1", "bytes32", "bytes32"],
-      [
-        "0x19",
-        "0x01",
-        DOMAIN_SEPARATOR,
-        keccak256(
-          defaultAbiCoder.encode(
-            ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
-            [
-              PERMIT_TYPEHASH,
-              approve.owner,
-              approve.spender,
-              approve.value,
-              nonce,
-              deadline,
-            ]
-          )
-        ),
-      ]
-    )
-  );
 }
 
 export function encodePrice(reserve0: bigint, reserve1: bigint) {
