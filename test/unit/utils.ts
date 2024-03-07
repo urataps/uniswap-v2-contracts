@@ -6,6 +6,7 @@ import {
   toUtf8Bytes,
   solidityPacked,
 } from "ethers";
+import { UniswapV2Pair } from "../../typechain";
 
 const PERMIT_TYPEHASH = keccak256(
   toUtf8Bytes(
@@ -55,7 +56,7 @@ export function getCreate2Address(
 }
 
 export async function getApprovalDigest(
-  token: Contract,
+  token: UniswapV2Pair,
   approve: {
     owner: string;
     spender: string;
