@@ -18,6 +18,9 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  gasReporter: {
+    enabled: true,
+  },
   typechain: {
     outDir: "typechain",
     target: "ethers-v6",

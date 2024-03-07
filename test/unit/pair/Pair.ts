@@ -15,16 +15,10 @@ describe("Pair", () => {
   let other: SignerWithAddress;
 
   let factory: UniswapV2Factory;
-  let factoryAddress: string;
-
   let pair: UniswapV2Pair;
   let pairAddress: string;
-
   let token0: MockERC20;
-  let token0Address: string;
-
   let token1: MockERC20;
-  let token1Address: string;
 
   beforeEach(async () => {
     [wallet, other] = await ethers.getSigners();
@@ -33,10 +27,7 @@ describe("Pair", () => {
     pair = fixture.pair;
     token0 = fixture.token0;
     token1 = fixture.token1;
-    factoryAddress = await factory.getAddress();
     pairAddress = await pair.getAddress();
-    token0Address = await token0.getAddress();
-    token1Address = await token1.getAddress();
   });
 
   it("mint", async () => {

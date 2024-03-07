@@ -4,10 +4,10 @@ pragma solidity 0.8.24;
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 import {ERC20} from "solady/tokens/ERC20.sol";
+import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 import {FEE_BASE} from "src/Constants.sol";
 import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
-import {Math} from "./libraries/Math.sol";
 import {UQ112x112} from "./libraries/UQ112x112.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Callee} from "./interfaces/IUniswapV2Callee.sol";
@@ -80,8 +80,8 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
         uint _kLast = kLast; // gas savings
         if (feeOn) {
             if (_kLast != 0) {
-                uint rootK = Math.sqrt(uint(_reserve0) * _reserve1);
-                uint rootKLast = Math.sqrt(_kLast);
+                uint rootK = FixedPointMathLib.sqrt(uint(_reserve0) * _reserve1);
+                uint rootKLast = FixedPointMathLib.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply() * (rootK - rootKLast);
                     uint denominator = rootK * 5 + rootKLast;
@@ -105,10 +105,10 @@ contract UniswapV2Pair is IUniswapV2Pair, ERC20, ReentrancyGuard {
         bool feeOn = _mintFee(_reserve0, _reserve1);
         uint _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
-            liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
+            liquidity = FixedPointMathLib.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
             _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            liquidity = Math.min(amount0 * _totalSupply / _reserve0, amount1 * _totalSupply / _reserve1);
+            liquidity = FixedPointMathLib.min(amount0 * _totalSupply / _reserve0, amount1 * _totalSupply / _reserve1);
         }
         require(liquidity > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
         _mint(to, liquidity);
