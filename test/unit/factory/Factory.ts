@@ -7,7 +7,7 @@ import {
 } from "../../../typechain";
 import { deployFactoryFixture } from "./Factory.fixture";
 import { ethers } from "hardhat";
-import { ZeroAddress } from "ethers";
+import { ZeroAddress, keccak256 } from "ethers";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { getCreate2Address } from "../utils";
 
@@ -31,6 +31,7 @@ describe("Factory", () => {
 
   async function createPair(tokens: [string, string]) {
     const bytecode = UniswapV2Pair__factory.bytecode;
+    console.log(keccak256(bytecode));
     const create2Address = getCreate2Address(factoryAddress, tokens, bytecode);
     await expect(factory.createPair(...tokens))
       .to.emit(factory, "PairCreated")
